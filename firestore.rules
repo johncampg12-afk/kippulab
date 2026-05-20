@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    function isValidTimestamp(ts) { return ts is timestamp; }
+    
+    // Emitter Collection
+    match /users/{userId}/emitter/{emitterId} {
+      function isValidEmitter(data) {
+        return data.keys().hasAll(['userId', 'ruc', 'name', 'environment', 'serial']) &&
+               data.userId == userId &&
+               data.ruc is string && data.ruc.size() <= 20 &&
+               data.name is string && data.name.size() <= 100 &&
+               data.environment is string && data.environment.size() <= 5 &&
+               data.serial is string && data.serial.size() <= 10;
+      }
+      
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidEmitter(request.resource.data);
+      allow update: if isOwner(userId) && isValidEmitter(request.resource.data) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                      'tradeName', 'address', 'obligado', 'typeRimpe', 'signatureP12Name', 'updatedAt'
+                    ]);
+      allow delete: if isOwner(userId);
+    }
+
+    // Invoice Collection
+    match /users/{userId}/invoices/{invoiceId} {
+      function isValidInvoice(data) {
+        return data.keys().hasAll(['userId', 'sequence', 'status', 'date']) &&
+               data.userId == userId &&
+               data.sequence is string && data.sequence.size() <= 20 &&
+               data.status is string && data.status.size() <= 20 &&
+               data.date is string && data.date.size() <= 20;
+      }
+
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidInvoice(request.resource.data);
+      allow update: if isOwner(userId) && isValidInvoice(request.resource.data) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                      'status', 'paymentStatus', 'sriDiagnostic', 'accessKey', 'updatedAt'
+                    ]);
+      allow delete: if isOwner(userId);
+    }
+  }
+}

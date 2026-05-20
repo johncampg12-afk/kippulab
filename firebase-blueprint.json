@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Emitter": {
+      "title": "Emitter Settings",
+      "description": "Tax and business settings of the company issuing invoices",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner userId" },
+        "ruc": { "type": "string" },
+        "name": { "type": "string" },
+        "tradeName": { "type": "string" },
+        "address": { "type": "string" },
+        "obligado": { "type": "boolean" },
+        "environment": { "type": "string" },
+        "serial": { "type": "string" },
+        "typeRimpe": { "type": "string" },
+        "signatureP12Name": { "type": "string" },
+        "updatedAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "ruc", "name", "environment", "serial"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Record of a sale",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "sequence": { "type": "string" },
+        "date": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientIdNumber": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "status": { "type": "string" },
+        "accessKey": { "type": "string" },
+        "sriDiagnostic": { "type": "string" },
+        "total": { "type": "number" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "sequence", "status", "date"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/emitter/{emitterId}": {
+      "schema": { "$ref": "#/entities/Emitter" },
+      "description": "Stores the user's emitter configuration"
+    },
+    "users/{userId}/invoices/{invoiceId}": {
+      "schema": { "$ref": "#/entities/Invoice" },
+      "description": "Stores the user's invoices"
+    }
+  }
+}
